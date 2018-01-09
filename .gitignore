@@ -1,2 +1,5 @@
 training/model/*
 training/data/*
+
+!training/model/.gitkeep
+!training/data/.gitkeep
