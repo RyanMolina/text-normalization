@@ -1,6 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+
 training/model/*
 training/data/corpus/*
 training/data/dataset/*
+
 
 !training/model/.gitkeep
 !training/data/.gitkeep
