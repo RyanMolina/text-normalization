@@ -1,0 +1,17 @@
+.custom-ta {
+  min-height: 400px;
+  resize: none;
+  overflow: hidden;
+}
+
+textarea:disabled.custom-ta {
+  cursor: auto !important;
+  background-color: transparent;
+}
+
+#chars {
+  margin-top: -1rem;
+  color: #aaa;
+}
+
+

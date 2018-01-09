@@ -1,0 +1,51 @@
+{% include 'head.html' %}
+<body>
+  <div class="grid-container">
+    <table id="results-table" class="stack">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Input</th>
+          <th>Expected</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set total = namespace() %}
+      {% set correct = namespace() %}
+      {% set total.value = 0 %}
+      {% set correct.value = 0 %}
+      {% for e in rows %}
+        {% set total.value = total.value + 1 %}
+        {% if e['dec'] == e['res'] %}
+          {% set correct.value = correct.value + 1 %}
+        {% endif %}
+        <tr>
+          <td>{{ total.value }}</td>
+          <td>{{ e['enc'] }}</td>
+          <td>{{ e['dec']|join(' ') }}</td>
+          <td>{{ highlight_incorrect(e['dec'], e['res']) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div id="accuracy">
+      <div class="grid-x align-center">
+        <div class="large-4 small-12 cell text-center">
+          <p>Total</p>
+          <div class="stat">{{ total.value }}</div>
+        </div>
+        <div class="large-4 small-12 cell text-center">
+          <p>Correct</p>
+          <div class="stat">{{ correct.value }}</div>
+        </div>
+        <div class="large-4 small-12 cell text-center">
+          <p>Accuracy</p>
+          <div class="stat">{{ '%.2f' | format(correct.value/total.value * 100) }}</div>
+        </div>
+      </div>
+      <hr>
+      <button class="button" id="export">Download CSV</button>
+    </div>
+  </div>
+{% include 'footer.html' %}

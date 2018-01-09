@@ -1,0 +1,30 @@
+{% include 'head.html' %}
+<div class="grid-container">
+  <div class="grid-x align-center">
+    <div class="large-6 small-12 cell">
+      <textarea maxlength="280" id="encoded" class="custom-ta" placeholder="Enter Text"></textarea>
+      <span id="chars" class="float-right">0/280</span>
+    </div>
+    <div class="large-6 small-12 cell">
+      <textarea maxlength="280" id="decoded" disabled class="custom-ta"></textarea>
+    </div>
+  </div>
+  <div id="accuracy-tester">
+    <form id="uploadForm" action="{{ url_for('accuracy_test') }}" method="post" name="upload" class="grid-x align-center">
+      <div class="large-6 small-12 cell text-center">
+        <label for="enc-upload" class="hollow button">Encoder File</label>
+        <input type="file" id="enc-upload" name="enc" class="show-for-sr">
+        <input type="hidden" id="enc-data" name="enc-data">
+        <p id="enc-filename">No file selected</p>
+      </div>
+      <div class="large-6 small-12 cell text-center">
+        <label for="dec-upload" class="hollow button">Decoder File</label>
+        <input type="file" id="dec-upload" name="dec" class="show-for-sr">
+        <input type="hidden" id="dec-data" name="dec-data">
+        <p id="dec-filename">No file selected</p>
+      </div>
+      <button type="submit" id="normalize" class="button float-center">Normalize</button>
+    </form>
+  </div>
+</div>
+{% include 'footer.html' %}
