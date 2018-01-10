@@ -2,7 +2,7 @@ import re
 import random
 import string
 from nltk.tokenize import MWETokenizer
-from training.data.Hyphenator import Hyphenator
+from training.data.hyphenator import Hyphenator
 
 
 class TextNoisifier:
@@ -86,7 +86,7 @@ class TextNoisifier:
             w_len = len(word)
             w_center = w_len // 2
             if pos == "left":
-                word = word[:w_center].translate(self.remove_vowel_rule) + word[w_center:]
+                word = word[0] + word[1:w_center].translate(self.remove_vowel_rule) + word[w_center:]
             elif pos == "middle":
                 start = w_center // 2
                 end = w_center + start
@@ -99,9 +99,8 @@ class TextNoisifier:
             word = word[0]
         return word
 
-    @staticmethod
-    def repeat_characters(word):
-        letter = random.choice(list(word))
+    def repeat_characters(self, word):
+        letter = random.choice(list(self.vowels))
         length = random.randrange(4, 10)
         if random.getrandbits(1):
             word = word.replace(letter, letter * length, 1)  # left
@@ -165,11 +164,11 @@ class TextNoisifier:
             if grouped_units != word:
                 return grouped_units
 
-            selected = random.choice(['remove_vowels', 'phonetic_style', 'accent_style', 'retain'])
+            selected = random.choice(['remove_vowels', 'phonetic_style', 'accent_style'])
             noisy_word = self.dispatch_rules(selected, word)
 
             if noisy_word == word:
-                selected = random.choice(['repeat_characters', 'misspell', 'retain'])
+                selected = random.choice(['repeat_characters'])
                 word = self.dispatch_rules(selected, word)
             else:
                 word = noisy_word
@@ -182,9 +181,7 @@ class TextNoisifier:
             'phonetic_style': self.phonetic_style(word),
             'accent_style': self.accent_style(word),
             'repeat_characters': self.repeat_characters(word),
-            'misspell': self.misspell(word),
-            'group_repeating_units': self.group_repeating_units(word),
-            'retain': word
+            'group_repeating_units': self.group_repeating_units(word)
         }.get(rule, word)
 
 

@@ -31,10 +31,10 @@ def main():
                                        max_token_count=280*2)
 
         split_dataset.split(os.path.join(training_path, model_name, 'noisy_{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'enc')
+                            os.path.join(training_path, model_name), 'enc', test_size=500, dev_size=500)
 
         split_dataset.split(os.path.join(training_path, model_name, '{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'dec')
+                            os.path.join(training_path, model_name), 'dec', test_size=500, dev_size=500)
 
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.enc'))
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.dec'))

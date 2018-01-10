@@ -83,8 +83,7 @@ class ModelBuilder(object):
         start_decay_step = hparams.start_decay_step
         decay_steps = hparams.decay_steps
         decay_factor = hparams.decay_factor
-        print("Start Decay Step: {} Remaining Steps: {} Decay Steps: {}"
-               .format(start_decay_step, remain_steps, decay_steps))
+
         return tf.cond(
             self.global_step < start_decay_step,
             lambda: self.learning_rate,

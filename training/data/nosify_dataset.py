@@ -6,7 +6,7 @@ import re
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.data import load
 from utils import generate_vocab as gv
-from training.data.TextNoisifier import TextNoisifier
+from training.data.textnoisifier import TextNoisifier
 
 
 def csv_to_dict(file):
