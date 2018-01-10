@@ -7,7 +7,7 @@ __pycache__/
 training/model/*
 training/data/corpus/*
 training/data/dataset/*
-
+training/data/sent_tokenizer.pickle
 
 !training/model/.gitkeep
 !training/data/.gitkeep
