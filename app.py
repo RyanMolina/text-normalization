@@ -42,10 +42,8 @@ def accuracy_test():
 
     def generate():
         enc_content = enc.replace(' ', '').replace('<space>', ' ').split('\n')
-        print(len(enc_content))
         dec_content = dec.replace(' ', '').replace('<space>', ' ').split('\n')
-        print(len(dec_content))
-        for i, e in enumerate(enc_content):
+        for i, e in enumerate(enc_content[:1000]):
             if e:
                 result = {'enc': e.strip().strip('\n'),
                           'dec': dec_content[i].strip().strip('\n').split(),
@@ -81,6 +79,6 @@ def server_error(e):
 
 if __name__ == '__main__':
     with tf.Session() as sess:
-        normalizer = serve.Serve(sess=sess, model_name="model_b",
-                                 checkpoint="normalize.ckpt-1000")
+        normalizer = serve.Serve(sess=sess, model_name="model_bicol",
+                                 checkpoint="normalize.ckpt-47000")
         app.run(debug=True, use_reloader=True)
