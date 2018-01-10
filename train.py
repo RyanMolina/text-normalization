@@ -27,14 +27,14 @@ def main():
                                                     '{}_sentences.txt'.format(prefix)),
                                        tok=sent_tokenizer_path,
                                        char_level_emb=True,
-                                       augment_data=False,
-                                       max_token_count=560)
+                                       augment_data=True,
+                                       max_token_count=280*2)
 
         split_dataset.split(os.path.join(training_path, model_name, 'noisy_{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'enc', test_size=1000)
+                            os.path.join(training_path, model_name), 'enc')
 
         split_dataset.split(os.path.join(training_path, model_name, '{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'dec', test_size=1000)
+                            os.path.join(training_path, model_name), 'dec')
 
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.enc'))
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.dec'))
@@ -58,7 +58,5 @@ if __name__ == "__main__":
     parser.add_argument('--generate_dataset', default=False, type=bool, help="Generate parallel noisy text")
     parser.add_argument('--train', default=False, type=bool, help="Start/Resume train")
     parser.add_argument('--train_sent_tokenizer', default=False, type=bool, help="Train a new sentence tokenizer")
-    # parser.add_argument('--max_seq_len', type=int, default=50, help="Maximum sequence length that the program will accept. (Default: 50)")
-    # parser.add_argument('--sent_tokenizer', help='Pickle file of your desired sentence tokenizer. (Default: nltk.sent_tokenize)')
     args = parser.parse_args()
     main()
