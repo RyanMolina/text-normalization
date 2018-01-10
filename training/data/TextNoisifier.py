@@ -158,8 +158,8 @@ class TextNoisifier:
         if not self.re_digits.search(word) \
                 and self.re_accepted.search(word) \
                 and len(word) > 1 \
-                and "'" not in word \
-                and word not in "!:,.'\"#$%^&*()_=-+\][{}|":
+                and word[0].islower() \
+                and "'" not in word:
 
             grouped_units = self.group_repeating_units(word)
             if grouped_units != word:
