@@ -5,7 +5,14 @@ from seq2seq import utils
 
 class ModelBuilder(object):
     def __init__(self, dataset, model_dir, batch_input, training=True):
-
+        """
+        Creates the seq2seq model with attention
+            :param self: 
+            :param dataset: 
+            :param model_dir: 
+            :param batch_input: 
+            :param training=True: 
+        """
         self.model_dir = model_dir
         self.training = training
         self.batch_input = batch_input
@@ -80,6 +87,11 @@ class ModelBuilder(object):
         self.saver = tf.train.Saver(tf.global_variables())
 
     def _get_learning_rate_decay(self, hparams):
+        """
+        Returns the condition of decay scheme
+            :param self: 
+            :param hparams: 
+        """   
         start_decay_step = hparams.start_decay_step
         decay_steps = hparams.decay_steps
         decay_factor = hparams.decay_factor

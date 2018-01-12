@@ -7,11 +7,12 @@ verify_ssl = true
 
 [packages]
 
-tensorflow-gpu = "*"
 flask = "*"
 pypatgen = "*"
 nltk = "*"
-Scrapy = "*"
+scrapy = "*"
+tensorflow = "*"
+gunicorn = "*"
 
 
 [dev-packages]

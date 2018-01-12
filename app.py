@@ -79,6 +79,6 @@ def server_error(e):
 
 if __name__ == '__main__':
     with tf.Session() as sess:
-        normalizer = serve.Serve(sess=sess, model_name="model_bicol",
-                                 checkpoint="normalize.ckpt-47000")
+        normalizer = serve.Serve(sess=sess, model_name="model_served",
+                                 checkpoint="normalize.ckpt-20000")
         app.run(debug=True, use_reloader=True)

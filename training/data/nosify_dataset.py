@@ -31,6 +31,11 @@ ntg = TextNoisifier(accent_dict, phonetic_dict, contract_dict, expansion_dict, h
 
 
 def is_ascii(text):
+    """
+    checks if the text contains non-ascii character
+    :param text:
+    :return boolean:
+    """
     try:
         text.encode('ascii')
         return True
@@ -47,7 +52,7 @@ def noisify(text):
     return ntg.noisify(text)
 
 
-def collect_dataset(src, tgt, tok=None, max_token_count=140, char_level_emb=False, augment_data=True):
+def collect_dataset(src, tgt, tok=None, max_token_count=50, char_level_emb=False, augment_data=False):
 
     process_pool = Pool()
 
@@ -87,11 +92,8 @@ def collect_dataset(src, tgt, tok=None, max_token_count=140, char_level_emb=Fals
 
     html_spec_chars = re.compile(r'&#\d+;')
 
-    names = re.compile(r"[A-Z]([a-z]+|\.)(?:\s+[A-Z]([a-z]+|\.))*\s+[A-Z]([a-z]+|\.)")
-    acronyms = re.compile(r'\b[A-Z][a-zA-Z\.]*[A-Z]\b\.?')
-
-    path, filename = os.path.split(tgt)
     print('   => collecting clean and noisy sentences')
+    path, filename = os.path.split(tgt)
     with open(tgt, 'w', encoding="utf8") as outfile, \
             open("{}/noisy_{}".format(path, filename), 'w', encoding='utf8') as clean_text:
 
