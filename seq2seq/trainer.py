@@ -120,7 +120,7 @@ class Trainer(object):
             if global_step - last_save_step >= save_interval:
                 last_save_step = global_step
 
-                utils.print_out("# Save eval, global step %d" % global_step)
+                utils.print_out("# Save eval, global step {}".format(global_step))
                 utils.add_summary(summary_writer, global_step, "train_ppl", train_perp)
 
                 # Save checkpoint
@@ -157,10 +157,10 @@ class Trainer(object):
     @staticmethod
     def _format_results(name, ppl, scores, metrics):
         """Format results."""
-        result_str = "%s ppl %.2f" % (name, ppl)
+        result_str = "{} ppl {:.2f}".format(name, ppl)
         if scores:
             for metric in metrics:
-                result_str += ", %s %s %.1f" % (name, metric, scores[metric])
+                result_str += ", {} {} {:.1f}" % (name, metric, scores[metric])
         return result_str
 
     @staticmethod
@@ -174,7 +174,7 @@ class Trainer(object):
         """Computing perplexity."""
         sess.run(iterator.initializer, feed_dict=iterator_feed_dict)
         ppl = model.compute_perplexity(model, sess, label)
-        utils.add_summary(summary_writer, global_step, "%s_ppl" % label, ppl)
+        utils.add_summary(summary_writer, global_step, "{}_ppl".format(label), ppl)
         return ppl
 
     @staticmethod
@@ -194,7 +194,7 @@ class Trainer(object):
 
         """Pick a sentence and decode."""
         decode_id = random.randint(0, len(src_data) - 1)
-        utils.print_out("  # %d" % decode_id)
+        utils.print_out("  # {}".format(decode_id))
 
         iterator_feed_dict = {
             iterator_src_placeholder: [src_data[decode_id]],
@@ -210,9 +210,9 @@ class Trainer(object):
             tgt_eos=hparams.eos_token), attention_summary)
         translation = utils.format_text(replaced)
 
-        utils.print_out("    src: %s" % src_data[decode_id].replace(' ', '').replace('<space>', ' '))
-        utils.print_out("    ref: %s" % tgt_data[decode_id].replace(' ', '').replace('<space>', ' '))
-        utils.print_out("    nmt: " + translation.replace(' ', '').replace('<space>', ' '))
+        utils.print_out("    src: {}".format(src_data[decode_id].replace(' ', '').replace('<space>', ' ')))
+        utils.print_out("    ref: {}".format(tgt_data[decode_id].replace(' ', '').replace('<space>', ' ')))
+        utils.print_out("    nmt: {}".format(translation.replace(' ', '').replace('<space>', ' ')))
 
         return src_data[decode_id], tgt_data[decode_id], translation
 
@@ -251,16 +251,15 @@ class Trainer(object):
             stats["loss"] / stats["predict_count"])
         speed = stats["total_count"] / (1000 * stats["step_time"])
         utils.print_out(
-            "  global step %d lr %g "
-            "step-time %.2fs wps %.2fK ppl %.2f" %
-            (global_step, stats["learning_rate"],
-             avg_step_time, speed, train_ppl),
-            log_f)
+            "  global step {} lr {:.2e} "
+            "step-time {:.2f}s seq/s {:.2f}K ppl {:.2f}"
+            .format(global_step, stats["learning_rate"],
+                    avg_step_time, speed, train_ppl), log_f)
 
         # Check for overflow
         is_overflow = False
         if math.isnan(train_ppl) or math.isinf(train_ppl) or train_ppl > 1e20:
-            utils.print_out("  step %d overflow, stop early" % global_step, log_f)
+            utils.print_out("  step {} overflow, stop early".format(global_step, log_f))
             is_overflow = True
 
         return is_overflow
