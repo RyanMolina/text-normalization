@@ -9,7 +9,9 @@ training/data/corpus/*
 training/data/dataset/*
 training/data/sent_tokenizer.pickle
 
+!training/model/model_served
 !training/model/.gitkeep
 !training/data/.gitkeep
 !training/data/corpus/.gitkeep
+!training/data/dataset/model_served
 !training/data/dataset/.gitkeep
