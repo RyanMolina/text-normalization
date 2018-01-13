@@ -1,6 +1,6 @@
 {
-  "batch_size": 256,
-  "batch_size_infer": 256,
+  "batch_size": 32,
+  "batch_size_infer": 32,
   "sos_id": 1,
   "sos_token": "<s>",
   "eos_id": 2,
@@ -21,7 +21,7 @@
   "steps_per_stats": 100,
   "save_interval": 1000,
   "num_layers": 2,
-  "num_units": 256,
+  "num_units": 512,
   "pass_hidden_state": true,
   "learning_rate": 0.0001,
   "random_seed": 0.1,

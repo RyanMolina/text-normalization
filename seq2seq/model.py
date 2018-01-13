@@ -5,7 +5,14 @@ from seq2seq import utils
 
 class ModelBuilder(object):
     def __init__(self, dataset, model_dir, batch_input, training=True):
-
+        """
+        Creates the seq2seq model with attention
+            :param self: 
+            :param dataset: 
+            :param model_dir: 
+            :param batch_input: 
+            :param training=True: 
+        """
         self.model_dir = model_dir
         self.training = training
         self.batch_input = batch_input
@@ -60,9 +67,7 @@ class ModelBuilder(object):
 
         if self.training:
             self.learning_rate = tf.constant(self.hparams.learning_rate)
-            # self.learning_rate = self._get_learning_rate_warmup(self.hparams)
             self.learning_rate = self._get_learning_rate_decay(self.hparams)
-            # self.learning_rate = tf.placeholder(tf.float32, shape=[], name='learning_rate')
             opt = tf.train.AdamOptimizer(self.learning_rate)
             gradients = tf.gradients(self.train_loss, params)
             clipped_gradients, gradient_norm_summary, grad_norm = gradient_clip(
@@ -81,38 +86,16 @@ class ModelBuilder(object):
 
         self.saver = tf.train.Saver(tf.global_variables())
 
-    def _get_learning_rate_warmup(self, hparams):
-        """Get learning rate warmup."""
-        warmup_steps = hparams.warmup_steps
-        warmup_scheme = hparams.warmup_scheme
-        utils.print_out("  learning_rate=%g, warmup_steps=%d, warmup_scheme=%s" %
-                        (hparams.learning_rate, warmup_steps, warmup_scheme))
-
-        # Apply inverse decay if global steps less than warmup steps.
-        # Inspired by https://arxiv.org/pdf/1706.03762.pdf (Section 5.3)
-        # When step < warmup_steps,
-        #   learing_rate *= warmup_factor ** (warmup_steps - step)
-        if warmup_scheme == "t2t":
-            # 0.01^(1/warmup_steps): we start with a lr, 100 times smaller
-            warmup_factor = tf.exp(tf.log(0.01) / warmup_steps)
-            inv_decay = warmup_factor ** (
-                tf.to_float(warmup_steps - self.global_step))
-        else:
-            raise ValueError("Unknown warmup scheme %s" % warmup_scheme)
-
-        return tf.cond(
-            self.global_step < hparams.warmup_steps,
-            lambda: inv_decay * self.learning_rate,
-            lambda: self.learning_rate,
-            name="learning_rate_warump_cond")
-
     def _get_learning_rate_decay(self, hparams):
-        start_decay_step = int(hparams.num_train_steps / 2)
-        remain_steps = hparams.num_train_steps - start_decay_step
-        decay_steps = int(remain_steps / 10)  # decay 10 times
-        decay_factor = 0.5
-        print("Start Decay Step: {} Remaining Steps: {} Decay Steps: {}"
-               .format(start_decay_step, remain_steps, decay_steps))
+        """
+        Returns the condition of decay scheme
+            :param self: 
+            :param hparams: 
+        """   
+        start_decay_step = hparams.start_decay_step
+        decay_steps = hparams.decay_steps
+        decay_factor = hparams.decay_factor
+
         return tf.cond(
             self.global_step < start_decay_step,
             lambda: self.learning_rate,

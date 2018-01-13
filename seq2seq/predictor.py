@@ -26,7 +26,11 @@ class Predictor(object):
                                   batch_input=self.infer_batch)
 
         print("+ Restoring seq2seq weights ...")
-        self.model.saver.restore(session, os.path.join(output_dir, output_file))
+        if output_file:
+            output_file = os.path.join(output_dir, output_file)
+        else:
+            output_file = tf.train.latest_checkpoint(output_dir)
+        self.model.saver.restore(session, output_file)
         self.session.run(tf.tables_initializer())
 
     def predict(self, sentence):

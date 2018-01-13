@@ -25,13 +25,10 @@ def main():
     with open(args.src, 'r') as in_file, \
          open(args.out, 'w') as out_file:
         articles = in_file.read().split('\n')
-        # remove_article_place = re.compile(r'^[^–—-]*\s*[–—-]\s*')
         for article in articles:
-            # article = remove_html_tags(article)
             article = remove_multiple_space(article)
             article = remove_multiple_newlines(article)
             article = replace_quotation(article)
-            # article = remove_article_place.sub('', article)
             if article:
                 print(article.strip('-').strip(), file=out_file)
 

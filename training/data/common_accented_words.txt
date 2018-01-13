@@ -1,4 +1,3 @@
-kahi,ke
-pahi,pe
-kai,ke
-may,me
+version https://git-lfs.github.com/spec/v1
+oid sha256:53a0d3606c7fe80f9864d193fd2657ebbb9bbb5c0ba9edc0049d2ec5475bee44
+size 29

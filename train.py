@@ -27,14 +27,14 @@ def main():
                                                     '{}_sentences.txt'.format(prefix)),
                                        tok=sent_tokenizer_path,
                                        char_level_emb=True,
-                                       augment_data=False,
-                                       max_token_count=560)
+                                       augment_data=True,
+                                       max_token_count=280*2)
 
         split_dataset.split(os.path.join(training_path, model_name, 'noisy_{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'enc', test_size=1000)
+                            os.path.join(training_path, model_name), 'enc', test_size=500, dev_size=500)
 
         split_dataset.split(os.path.join(training_path, model_name, '{}_sentences.txt'.format(prefix)),
-                            os.path.join(training_path, model_name), 'dec', test_size=1000)
+                            os.path.join(training_path, model_name), 'dec', test_size=500, dev_size=500)
 
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.enc'))
         generate_vocab.get_vocab(os.path.join(training_path, model_name, 'train.dec'))
@@ -44,9 +44,9 @@ def main():
         model_dir = os.path.join('training', 'model', model_name)
         os.makedirs(model_dir, exist_ok=True)
         hparams_file = os.path.join('{}_hparams.json'.format(prefix))
-        hparams = seq2seq.utils.load_hparams(hparams_file)
         if not os.path.exists(os.path.join(model_dir, hparams_file)):
             shutil.copy(hparams_file, os.path.join(model_dir))
+        hparams = seq2seq.utils.load_hparams(os.path.join(model_dir, hparams_file))
         trainer = seq2seq.trainer.Trainer(data_dir=data_dir, model_dir=model_dir, hparams=hparams)
         trainer.train()
 
@@ -54,11 +54,12 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('src', type=str, help="Filename of your source text")
-    parser.add_argument('--model_name', default='model', type=str, help="Unique name for each model you train.")
-    parser.add_argument('--generate_dataset', default=False, type=bool, help="Generate parallel noisy text")
+    parser.add_argument('--model_name', default='model', type=str,
+                        help="Unique name for each model you train.")
+    parser.add_argument('--generate_dataset', default=False, type=bool,
+                        help="Generate parallel noisy text")
     parser.add_argument('--train', default=False, type=bool, help="Start/Resume train")
-    parser.add_argument('--train_sent_tokenizer', default=False, type=bool, help="Train a new sentence tokenizer")
-    # parser.add_argument('--max_seq_len', type=int, default=50, help="Maximum sequence length that the program will accept. (Default: 50)")
-    # parser.add_argument('--sent_tokenizer', help='Pickle file of your desired sentence tokenizer. (Default: nltk.sent_tokenize)')
+    parser.add_argument('--train_sent_tokenizer', default=False, type=bool,
+                        help="Train a new sentence tokenizer")
     args = parser.parse_args()
     main()

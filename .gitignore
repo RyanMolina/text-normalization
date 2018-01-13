@@ -1,4 +1,6 @@
 __pycache__/
+.idea/*
+.vscode/*
 *.pyc
 *.pyo
 
@@ -6,8 +8,9 @@ training/model/*
 training/data/corpus/*
 training/data/dataset/*
 
-
+!training/model/model_served
 !training/model/.gitkeep
 !training/data/.gitkeep
 !training/data/corpus/.gitkeep
+!training/data/dataset/model_served
 !training/data/dataset/.gitkeep
