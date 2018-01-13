@@ -5,7 +5,7 @@ name = "pypi"
 verify_ssl = true
 
 [requires]
-python_version = "3.5.2"
+python_version = "3.5"
 
 [packages]
 
@@ -15,7 +15,6 @@ nltk = "*"
 scrapy = "*"
 tensorflow = "*"
 gunicorn = "*"
-tensorflow-gpu = "*"
 
 
 [dev-packages]

@@ -1,3 +1,6 @@
+"""Contains Dataset class, BatchedInput class
+and module function check_vocab, create_vocab_tables
+"""
 import codecs
 import os
 import collections
@@ -7,6 +10,7 @@ from seq2seq import utils
 
 
 class Dataset:
+    """Dataset class contains the hyperparameters, dataset, and vocabulary"""
     def __init__(self, dataset_dir, hparams=None, training=True):
 
         if hparams is None:
@@ -45,6 +49,11 @@ class Dataset:
         self._convert_to_tokens()
 
     def get_training_batch(self, num_threads=4):
+        """Returns the training batch
+            num_threads (int, optional): Defaults to 4. parallelizing mapping of dataset.
+        Returns:
+            BatchedInput: contains the batch iterator, target and source.
+        """
 
         buffer_size = self.hparams.batch_size * 400
         train_set = self.dataset_ids.shuffle(buffer_size=buffer_size)
@@ -58,8 +67,15 @@ class Dataset:
                                   (src, tgt_in, tgt_out, tf.size(src), tf.size(tgt_in)),
                                   num_parallel_calls=num_threads).prefetch(buffer_size)
 
-        def batching_func(x):
-            return x.padded_batch(
+        def batching_func(data):
+            """Pads the batch input according to max_seq_len
+            Args:
+                data ([type]): [description]
+            Returns:
+                [type]: [description]
+            """
+
+            return data.padded_batch(
                 self.hparams.batch_size,
                 padded_shapes=(tf.TensorShape([None]),
                                tf.TensorShape([None]),
@@ -94,7 +110,6 @@ class Dataset:
         batched_iter = batched_dataset.make_initializable_iterator()
         (src_ids, tgt_input_ids, tgt_output_ids, src_seq_len, tgt_seq_len) = \
             (batched_iter.get_next())
-        print(src_seq_len)
         return BatchedInput(initializer=batched_iter.initializer,
                             source=src_ids,
                             target_input=tgt_input_ids,

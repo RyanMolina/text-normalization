@@ -1,3 +1,7 @@
+"""Script to do all the work: 
+- generate dataset
+- train the model
+"""
 import os
 import argparse
 import shutil
@@ -7,6 +11,8 @@ import seq2seq
 
 
 def main():
+    """Contains all of the work that needs to be done."""
+    args = parse_args()
     model_name = args.model_name
     prefix = "char_level"
 
@@ -51,7 +57,12 @@ def main():
         trainer.train()
 
 
-if __name__ == "__main__":
+def parse_args():
+    """Parse the arguments needed before running.
+    Returns:
+        args : contains the source text, model name, and if should generate dataset or train.
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument('src', type=str, help="Filename of your source text")
     parser.add_argument('--model_name', default='model', type=str,
@@ -61,5 +72,8 @@ if __name__ == "__main__":
     parser.add_argument('--train', default=False, type=bool, help="Start/Resume train")
     parser.add_argument('--train_sent_tokenizer', default=False, type=bool,
                         help="Train a new sentence tokenizer")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
     main()
