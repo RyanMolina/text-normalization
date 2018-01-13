@@ -44,9 +44,9 @@ def main():
         model_dir = os.path.join('training', 'model', model_name)
         os.makedirs(model_dir, exist_ok=True)
         hparams_file = os.path.join('{}_hparams.json'.format(prefix))
-        hparams = seq2seq.utils.load_hparams(hparams_file)
         if not os.path.exists(os.path.join(model_dir, hparams_file)):
             shutil.copy(hparams_file, os.path.join(model_dir))
+        hparams = seq2seq.utils.load_hparams(os.path.join(model_dir, hparams_file))
         trainer = seq2seq.trainer.Trainer(data_dir=data_dir, model_dir=model_dir, hparams=hparams)
         trainer.train()
 
@@ -54,9 +54,12 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('src', type=str, help="Filename of your source text")
-    parser.add_argument('--model_name', default='model', type=str, help="Unique name for each model you train.")
-    parser.add_argument('--generate_dataset', default=False, type=bool, help="Generate parallel noisy text")
+    parser.add_argument('--model_name', default='model', type=str,
+                        help="Unique name for each model you train.")
+    parser.add_argument('--generate_dataset', default=False, type=bool,
+                        help="Generate parallel noisy text")
     parser.add_argument('--train', default=False, type=bool, help="Start/Resume train")
-    parser.add_argument('--train_sent_tokenizer', default=False, type=bool, help="Train a new sentence tokenizer")
+    parser.add_argument('--train_sent_tokenizer', default=False, type=bool,
+                        help="Train a new sentence tokenizer")
     args = parser.parse_args()
     main()
