@@ -5,23 +5,26 @@ from seq2seq.dataset import Dataset
 from seq2seq.model import ModelBuilder
 from seq2seq import utils
 
+
 class Predictor(object):
     """Predictor class holds an instance of
     restored dataset, hparams, weights from the trained model.
     """
-    def __init__(self, session, dataset_dir, output_dir, output_file, hparams=None):
-        self.session = session
+    def __init__(self, session, dataset_dir, output_dir,
+                 output_file, hparams=None):
 
+        self.session = session
         print("+ Preparing dataset placeholder and hyperparameters...")
-        self.dataset = Dataset(dataset_dir=dataset_dir, training=False, hparams=hparams)
+        self.dataset = Dataset(dataset_dir=dataset_dir, training=False,
+                               hparams=hparams)
         self.hparams = self.dataset.hparams
 
         self.src_placeholder = tf.placeholder(shape=[None], dtype=tf.string)
         src_dataset = tf.data.Dataset.from_tensor_slices(self.src_placeholder)
 
         self.batch_size_placeholder = tf.placeholder(shape=[], dtype=tf.int64)
-        self.infer_batch = self.dataset.get_inference_batch(src_dataset,
-                                                            self.batch_size_placeholder)
+        self.infer_batch = self.dataset.get_inference_batch(
+            src_dataset, self.batch_size_placeholder)
 
         print("+ Creating inference seq2seq...")
         self.model = ModelBuilder(training=False,
@@ -59,5 +62,6 @@ class Predictor(object):
         eos_token = self.hparams.eos_token.encode('utf-8')
         if eos_token in outputs:
             outputs = outputs[:outputs.index(eos_token)]
-        out_sentence = utils.format_text(utils.unk_replace(tokens, outputs, infer_summary))
+        out_sentence = utils.format_text(utils.unk_replace(
+            tokens, outputs, infer_summary))
         return out_sentence

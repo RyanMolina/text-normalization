@@ -1,6 +1,8 @@
 import argparse
 import pickle
-from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktLanguageVars, PunktTrainer
+from nltk.tokenize.punkt import (PunktSentenceTokenizer,
+                                 PunktLanguageVars,
+                                 PunktTrainer)
 
 
 def train(src, tgt):
@@ -9,6 +11,7 @@ def train(src, tgt):
         contents = infile.read()
         language_punkt_vars = PunktLanguageVars
         # language_punkt_vars.sent_end_chars=tuple(args.end_chars)
+        print("# Training sent tokenizer")
         trainer = PunktTrainer(contents, language_punkt_vars)
         trainer.INCLUDE_ALL_COLLOCS = True
         trainer.INCLUDE_ABBREV_COLLOCS = True
@@ -32,10 +35,11 @@ def train(src, tgt):
 
 
 def main():
+    args = parse_args()
     train(args.src, args.out)
 
 
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser(description="Opens a file and learn \
             boundary detection")
     parser.add_argument('src', type=str,
@@ -45,13 +49,16 @@ if __name__ == '__main__':
                         help="Filename of the trained PunktSentenceTokenizer")
     # parser.add_argument('--end_chars', nargs='+', default=['!', '.', '?'],
     #                     help="List of end characters")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
     main()
 
 """
-It uses an unsupervised learning algorithm. The specific technique 
-used in this case is called sentence boundary detection and it works 
-by counting punctuation and tokens that commonly end a sentence, 
-such as a period or new line, then using the resulting frequencies 
+It uses an unsupervised learning algorithm. The specific technique
+used in this case is called sentence boundary detection and it works
+by counting punctuation and tokens that commonly end a sentence,
+such as a period or new line, then using the resulting frequencies
 to decide what the sentence boundaries should actually look like.
 """

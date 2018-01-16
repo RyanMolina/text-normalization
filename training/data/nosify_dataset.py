@@ -15,32 +15,21 @@ def csv_to_dict(file):
         rows = f.read().split('\n')
         for row in rows:
             k, v = row.split(',')
-            d.update({k:v})
+            d.update({k: v})
     return d
 
 
 accent_dict = csv_to_dict('training/data/common_accented_words.txt')
 contract_dict = csv_to_dict('training/data/common_contracted_words.txt')
-phonetic_dict = csv_to_dict('training/data/common_phonetically_styled_words.txt')
+phonetic_dict = \
+    csv_to_dict('training/data/common_phonetically_styled_words.txt')
 expansion_dict = {v: k for k, v in contract_dict.items()}
 
 with open('training/data/hyph_fil.tex', 'r') as f:
     hyphenator_dict = f.read()
 
-ntg = TextNoisifier(accent_dict, phonetic_dict, contract_dict, expansion_dict, hyphenator_dict)
-
-
-def is_ascii(text):
-    """
-    checks if the text contains non-ascii character
-    :param text:
-    :return boolean:
-    """
-    try:
-        text.encode('ascii')
-        return True
-    except UnicodeEncodeError:
-        return False
+ntg = TextNoisifier(accent_dict, phonetic_dict, contract_dict,
+                    expansion_dict, hyphenator_dict)
 
 
 def noisify(text):
@@ -52,7 +41,8 @@ def noisify(text):
     return ntg.noisify(text)
 
 
-def collect_dataset(src, tgt, tok=None, max_token_count=50, char_level_emb=False, augment_data=False):
+def collect_dataset(src, tgt, tok=None, max_token_count=50,
+                    char_level_emb=False, augment_data=False):
 
     process_pool = Pool()
 
@@ -65,12 +55,14 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50, char_level_emb=False
     print('# Reading file')
     with open(src, encoding='utf8') as infile:
         contents = infile.read()
-        articles = [content for content in contents.split('\n') if content != '\n']
+        articles = [content
+                    for content in contents.split('\n') if content != '\n']
 
     clean_text = []
     if augment_data:
         # add the vocabulary to dataset
-        print('  [+] adding all the unique words in char-level embedding to augment the data')
+        print("  [+] adding all the unique words in "
+              "char-level embedding to augment the data")
         words, _ = zip(*gv.get_vocab(src, to_file=False))
         clean_text.extend(words)
 
@@ -90,12 +82,13 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50, char_level_emb=False
     sent_number = 0
     start_time = time.time()
 
-    html_spec_chars = re.compile(r'&#\d+;')
+    special_and_num_chars = re.compile(r'[^A-Za-z\s-]')
 
     print('   => collecting clean and noisy sentences')
     path, filename = os.path.split(tgt)
     with open(tgt, 'w', encoding="utf8") as outfile, \
-            open("{}/noisy_{}".format(path, filename), 'w', encoding='utf8') as clean_text:
+            open("{}/noisy_{}".format(path, filename),
+                 'w', encoding='utf8') as clean_text:
 
         for sentence in sampled_dataset:
             sent_number += 1
@@ -104,37 +97,65 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50, char_level_emb=False
                 speed = 10000 / (time.time() - start_time)
                 print("      # {} "
                       "line/s: {:.2f} "
-                      "ETA: {}".format(sent_number, speed, (clean_text_size - sent_number) / speed))
+                      "ETA: {}".format(sent_number,
+                                       speed,
+                                       (clean_text_size - sent_number)
+                                       / speed))
                 start_time = time.time()
 
             sent_len = len(list(sentence))
             words = word_tokenize(sentence)
             if 0 < sent_len < max_token_count \
-                    and is_ascii(sentence) \
-                    and '‘' not in sentence \
-                    and '"' not in sentence \
-                    and "'" not in sentence \
-                    and not ntg.re_digits.search(sentence) \
-                    and not html_spec_chars.search(sentence) \
-                    and sentence[0].isalnum():
+                    and not special_and_num_chars.search(sentence):
                 # Separate each token with space, even the punctuations
                 # Because word_tokenize changes the " to `` | ''
-                clean_sentence = ' '.join(words).replace("''", '"').replace("``", '"')
+                clean_sentence = ' '.join(words) \
+                                    .replace("''", '"') \
+                                    .replace("``", '"')
 
                 # Normalize first the contracted words from News Site Articles
                 clean_sentence = ntg.expansion(clean_sentence)
-                clean_sentence = ntg.expandable_expr.sub(ntg.word_expansion, clean_sentence)
+                clean_sentence = ntg.expandable_expr.sub(ntg.word_expansion,
+                                                         clean_sentence)
 
-                noisy_sentence = ntg.contraction(clean_sentence)
-                noisy_sentence = ntg.contractable_expr.sub(ntg.word_contraction, noisy_sentence)
-                noisy_sentence = ntg.anable_expr.sub(ntg.word_ang_to_an, noisy_sentence)
-                noisy_sentence = ntg.anu_expr.sub(ntg.word_ano, noisy_sentence)
-                noisy_sentence = ntg.amable_expr.sub(ntg.word_ang_to_am, noisy_sentence)
-                noisy_sentence = ' '.join(process_pool.map(noisify, noisy_sentence.split()))
+                noisy_sentence = clean_sentence
+
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.contraction(noisy_sentence)
+
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.contractable_expr.sub(
+                        ntg.word_contraction, noisy_sentence)
+
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.anable_expr.sub(
+                        ntg.word_ang_to_an, noisy_sentence)
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.anu_expr.sub(
+                        ntg.word_ano, noisy_sentence)
+
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.amable_expr.sub(
+                        ntg.word_ang_to_am, noisy_sentence)
+
+                if random.getrandbits(1):
+                    noisy_sentence = ntg.remove_space_expr.sub(
+                        ntg.word_remove_space, noisy_sentence)
+
+                noisy_sentence = ' '.join(process_pool.map(
+                    noisify, noisy_sentence.split()))
+
+                if random.getrandbits(1):
+                    if random.getrandbits(1):
+                        noisy_sentence = noisy_sentence.lower()
+                    else:
+                        noisy_sentence = noisy_sentence.upper()
 
                 if char_level_emb:
-                    clean_sentence = ' '.join(list(clean_sentence)).replace(' ' * 3, ' <space> ')
-                    noisy_sentence = ' '.join(list(noisy_sentence)).replace(' ' * 3, ' <space> ')
+                    clean_sentence = ' '.join(list(clean_sentence)) \
+                                        .replace(' ' * 3, ' <space> ')
+                    noisy_sentence = ' '.join(list(noisy_sentence)) \
+                                        .replace(' ' * 3, ' <space> ')
 
                 if clean_sentence and noisy_sentence:
                     print(clean_sentence, file=outfile)

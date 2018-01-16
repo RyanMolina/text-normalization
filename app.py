@@ -12,6 +12,7 @@ import serve
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 APP = Flask(__name__)
 
+
 @APP.context_processor
 def highlight_incorrect():
     """Returns highlighted text if doesn't match"""
@@ -20,7 +21,8 @@ def highlight_incorrect():
         for i, e in enumerate(res):
             try:
                 if e != tgt[i]:
-                    output.append('<span style="color: red;">{}</span>'.format(e))
+                    output.append('<span style="color: red;">{}</span>'
+                                  .format(e))
                 else:
                     output.append(e)
             except IndexError:
@@ -46,7 +48,16 @@ def accuracy_test():
     dec = request.form['dec-data']
 
     def stream_template(template_name, **context):
-        """Returns stream object from stream() instead of string from render()"""
+        """Returns stream object from stream()
+        instead of string from render()
+
+        Args:
+            template_name (str): filename of the template
+            **context (tuple): keyword arguments
+
+        Returns:
+            StreamObject: stream object of the template
+        """
         APP.update_template_context(context)
         template = APP.jinja_env.get_template(template_name)
         stream = template.stream(context)
@@ -54,17 +65,31 @@ def accuracy_test():
         return stream
 
     def generate():
-        """Returns a generator for Lazy-loading of table rows"""
-        enc_content = enc.replace(' ', '').replace('<space>', ' ').split('\n')
-        dec_content = dec.replace(' ', '').replace('<space>', ' ').split('\n')
+        """Returns a generator for Lazy-loading of table rows
+        Yields:
+            dict: The input, expected, and system output
+        """
+        if '<space>' in enc:
+            enc_content = enc.replace(' ', '') \
+                             .replace('<space>', ' ').split('\n')
+            dec_content = dec.replace(' ', '') \
+                             .replace('<space>', ' ').split('\n')
+        else:
+            enc_content = enc.split('\n')
+            dec_content = dec.split('\n')
+
         for i, e in enumerate(enc_content[:1000]):
             if e:
-                result = {'enc': e.strip().strip('\n'),
+                result = {
+                          'enc': e.strip().strip('\n'),
                           'dec': dec_content[i].strip().strip('\n').split(),
-                          'res': NORMALIZER.model_api(e.strip().strip('\n')).split()}
+                          'res': NORMALIZER.model_api(
+                              e.strip().strip('\n')).split()
+                          }
                 yield result
 
-    return Response(stream_with_context(stream_template('accuracy_testing.html', rows=generate())))
+    return Response(stream_with_context(
+        stream_template('accuracy_testing.html', rows=generate())))
 
 
 @APP.route('/normalize/api', methods=['POST'])
@@ -119,14 +144,16 @@ def parse_args():
         args: contains the parsed arguments
     """
 
-    parser = argparse.ArgumentParser(description="Dir of your selected model and the checkpoint.")
-    parser.add_argument(':model_name', default='model_served', type=str,
+    parser = argparse.ArgumentParser(
+        description="Dir of your selected model and the checkpoint.")
+
+    parser.add_argument('--model_name', default='model_served', type=str,
                         help="""
-                        Name of the model to use. 
+                        Name of the model to use.
                         Change only if you want to try other models.
                         (Default: 'model_served')
                         """)
-    parser.add_argument(':checkpoint', default=None, type=str,
+    parser.add_argument('--checkpoint', default=None, type=str,
                         help="""
                         Specify the checkpoint filename.
                         (Default: latest checkpoint)

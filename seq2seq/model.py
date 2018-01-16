@@ -1,18 +1,9 @@
 import tensorflow as tf
 from tensorflow.python.layers import core as layers_core
-from seq2seq import utils
 
 
 class ModelBuilder(object):
     def __init__(self, dataset, model_dir, batch_input, training=True):
-        """
-        Creates the seq2seq model with attention
-            :param self: 
-            :param dataset: 
-            :param model_dir: 
-            :param batch_input: 
-            :param training=True: 
-        """
         self.model_dir = model_dir
         self.training = training
         self.batch_input = batch_input
@@ -24,7 +15,6 @@ class ModelBuilder(object):
         self.tgt_vocab_size = dataset.tgt_vocab_size
 
         self.hparams = dataset.hparams
-        utils.print_hparams(self.hparams)
 
         self.num_layers = self.hparams.num_layers
         self.time_major = self.hparams.time_major
@@ -54,13 +44,19 @@ class ModelBuilder(object):
 
         if self.training:
             self.train_loss = res[1]
-            self.word_count = tf.reduce_sum(self.batch_input.source_sequence_length) + tf.reduce_sum(
-                self.batch_input.target_sequence_length)
+            self.word_count = \
+                tf.reduce_sum(self.batch_input.source_sequence_length) \
+                + tf.reduce_sum(self.batch_input.target_sequence_length)
 
-            self.predict_count = tf.reduce_sum(self.batch_input.target_sequence_length)
+            self.predict_count = \
+                tf.reduce_sum(self.batch_input.target_sequence_length)
         else:
-            self.infer_logits, _, self.final_context_state, self.sample_id = res
-            self.sample_words = self.reverse_vocab_table.lookup(tf.to_int64(self.sample_id))
+            (self.infer_logits,
+             _, self.final_context_state,
+             self.sample_id) = res
+
+            self.sample_words = \
+                self.reverse_vocab_table.lookup(tf.to_int64(self.sample_id))
 
         self.global_step = tf.Variable(0, trainable=False)
         params = tf.trainable_variables()
@@ -70,28 +66,26 @@ class ModelBuilder(object):
             self.learning_rate = self._get_learning_rate_decay(self.hparams)
             opt = tf.train.AdamOptimizer(self.learning_rate)
             gradients = tf.gradients(self.train_loss, params)
-            clipped_gradients, gradient_norm_summary, grad_norm = gradient_clip(
-                gradients, max_gradient_norm=self.hparams.max_gradient_norm)
+
+            clipped_gradients, gradient_norm_summary, grad_norm = \
+                gradient_clip(gradients,
+                              max_gradient_norm=self.hparams.max_gradient_norm)
 
             self.grad_norm = grad_norm
 
             self.update = opt.apply_gradients(zip(clipped_gradients, params),
                                               global_step=self.global_step)
 
-            self.train_summary = tf.summary.merge([tf.summary.scalar("learning_rate", self.learning_rate),
-                                                   tf.summary.scalar("train_loss", self.train_loss)]
-                                                  + gradient_norm_summary)
+            self.train_summary = tf.summary.merge(
+                [tf.summary.scalar("learning_rate", self.learning_rate),
+                 tf.summary.scalar("train_loss", self.train_loss)]
+                + gradient_norm_summary)
         else:
             self.infer_summary = self._get_infer_summary()
 
         self.saver = tf.train.Saver(tf.global_variables())
 
     def _get_learning_rate_decay(self, hparams):
-        """
-        Returns the condition of decay scheme
-            :param self: 
-            :param hparams: 
-        """   
         start_decay_step = hparams.start_decay_step
         decay_steps = hparams.decay_steps
         decay_factor = hparams.decay_factor
@@ -122,8 +116,8 @@ class ModelBuilder(object):
         with tf.variable_scope("dynamic_seq2seq", dtype=dtype):
             encoder_outputs, encoder_state = self._build_encoder()
 
-            logits, sample_id, final_context_state = self._build_decoder(encoder_outputs,
-                                                                         encoder_state)
+            logits, sample_id, final_context_state = \
+                self._build_decoder(encoder_outputs, encoder_state)
 
             if self.training:
                 loss = self._compute_loss(logits)
@@ -132,14 +126,14 @@ class ModelBuilder(object):
             return logits, loss, final_context_state, sample_id
 
     def _build_encoder(self):
-        num_layers = self.hparams.num_layers
         source = self.batch_input.source
 
         if self.time_major:
             source = tf.transpose(source)
 
         with tf.variable_scope("encoder") as scope:
-            encoder_emb_inp = tf.nn.embedding_lookup(self.embedding_encoder, source)
+            encoder_emb_inp = tf.nn.embedding_lookup(self.embedding_encoder,
+                                                     source)
 
             cell = self._build_encoder_cell()
             encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
@@ -154,16 +148,20 @@ class ModelBuilder(object):
 
     def _build_decoder(self, encoder_outputs, encoder_state):
 
-        tgt_sos_id = tf.cast(self.tgt_vocab_table.lookup(tf.constant(self.hparams.sos_token)), tf.int32)
-        tgt_eos_id = tf.cast(self.tgt_vocab_table.lookup(tf.constant(self.hparams.eos_token)), tf.int32)
+        tgt_sos_id = tf.cast(self.tgt_vocab_table.lookup(
+            tf.constant(self.hparams.sos_token)), tf.int32)
+        tgt_eos_id = tf.cast(self.tgt_vocab_table.lookup(
+            tf.constant(self.hparams.eos_token)), tf.int32)
 
         if self.hparams.tgt_max_len_infer:
             maximum_iterations = self.hparams.tgt_max_len_infer
         else:
             decoding_length_factor = 2.0
-            max_encoder_length = tf.reduce_max(self.batch_input.source_sequence_length)
+            max_encoder_length = tf.reduce_max(
+                self.batch_input.source_sequence_length)
             maximum_iterations = tf.to_int32(
-                tf.round(tf.to_float(max_encoder_length) * decoding_length_factor))
+                tf.round(tf.to_float(max_encoder_length)
+                         * decoding_length_factor))
 
         # Decoder.
         with tf.variable_scope("decoder") as decoder_scope:
@@ -177,8 +175,8 @@ class ModelBuilder(object):
                 target_input = self.batch_input.target_input
                 if self.time_major:
                     target_input = tf.transpose(target_input)
-                decoder_emb_inp = tf.nn.embedding_lookup(self.embedding_decoder,
-                                                         target_input)
+                decoder_emb_inp = tf.nn.embedding_lookup(
+                    self.embedding_decoder, target_input)
 
                 # Helper
                 helper = tf.contrib.seq2seq.TrainingHelper(
@@ -192,11 +190,12 @@ class ModelBuilder(object):
                     decoder_initial_state, )
 
                 # Dynamic decoding
-                outputs, final_context_state, _ = tf.contrib.seq2seq.dynamic_decode(
-                    my_decoder,
-                    output_time_major=self.time_major,
-                    swap_memory=True,
-                    scope=decoder_scope)
+                outputs, final_context_state, _ = \
+                    tf.contrib.seq2seq.dynamic_decode(
+                        my_decoder,
+                        output_time_major=self.time_major,
+                        swap_memory=True,
+                        scope=decoder_scope)
 
                 sample_id = outputs.sample_id
                 logits = self.output_layer(outputs.rnn_output)
@@ -220,12 +219,13 @@ class ModelBuilder(object):
                 )
 
                 # Dynamic decoding
-                outputs, final_context_state, _ = tf.contrib.seq2seq.dynamic_decode(
-                    my_decoder,
-                    maximum_iterations=maximum_iterations,
-                    output_time_major=self.time_major,
-                    swap_memory=True,
-                    scope=decoder_scope)
+                outputs, final_context_state, _ = \
+                    tf.contrib.seq2seq.dynamic_decode(
+                        my_decoder,
+                        maximum_iterations=maximum_iterations,
+                        output_time_major=self.time_major,
+                        swap_memory=True,
+                        scope=decoder_scope)
 
                 logits = outputs.rnn_output
                 sample_id = outputs.sample_id
@@ -242,7 +242,9 @@ class ModelBuilder(object):
 
     def _build_decoder_cell(self, encoder_outputs, encoder_state,
                             source_sequence_length):
-        """Build a RNN cell with attention mechanism that can be used by decoder."""
+        """Build a RNN cell with attention mechanism
+        that can be used by decoder.
+        """
 
         num_units = self.hparams.num_units
         num_layers = self.hparams.num_layers
@@ -260,18 +262,29 @@ class ModelBuilder(object):
         # Create the attention mechanism
         if self.hparams.attention_option == "luong":
             attention_mechanism = tf.contrib.seq2seq.LuongAttention(
-                num_units, memory, memory_sequence_length=source_sequence_length)
+                num_units,
+                memory,
+                memory_sequence_length=source_sequence_length)
         elif self.hparams.attention_option == "scaled_luong":
             attention_mechanism = tf.contrib.seq2seq.LuongAttention(
-                num_units, memory, memory_sequence_length=source_sequence_length, scale=True)
+                num_units,
+                memory,
+                memory_sequence_length=source_sequence_length,
+                scale=True)
         elif self.hparams.attention_option == "bahdanau":
             attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                num_units, memory, memory_sequence_length=source_sequence_length)
+                num_units,
+                memory,
+                memory_sequence_length=source_sequence_length)
         elif self.hparams.attention_option == "normed_bahdanau":
             attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                num_units, memory, memory_sequence_length=source_sequence_length, normalize=True)
+                num_units,
+                memory,
+                memory_sequence_length=source_sequence_length,
+                normalize=True)
         else:
-            raise ValueError("Unknown attention option {}".format(self.hparams.attention_option))
+            raise ValueError("Unknown attention option {}"
+                             .format(self.hparams.attention_option))
 
         cell = create_rnn_cell(
             num_units=num_units,
@@ -305,7 +318,9 @@ class ModelBuilder(object):
         crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels=target_output, logits=logits)
         target_weights = tf.sequence_mask(
-            self.batch_input.target_sequence_length, max_time, dtype=logits.dtype)
+            self.batch_input.target_sequence_length,
+            max_time,
+            dtype=logits.dtype)
         if self.time_major:
             target_weights = tf.transpose(target_weights)
 
@@ -320,7 +335,10 @@ class ModelBuilder(object):
     def infer(self, sess):
 
         infer_logits, infer_summary, sample_id, sample_words = sess.run([
-            self.infer_logits, self.infer_summary, self.sample_id, self.sample_words
+            self.infer_logits,
+            self.infer_summary,
+            self.sample_id,
+            self.sample_words
         ])
 
         # make sure outputs is of shape [batch_size, time]
@@ -334,7 +352,9 @@ class ModelBuilder(object):
 
 def get_initializer(init_op, seed=None, init_weight=None):
     if init_op == "uniform":
-        return tf.random_uniform_initializer(-init_weight, init_weight, seed=seed)
+        return tf.random_uniform_initializer(-init_weight,
+                                             init_weight,
+                                             seed=seed)
     elif init_op == "glorot_normal":
         return tf.contrib.keras.initializers.glorot_normal(seed=seed)
     elif init_op == "glorot_uniform":
@@ -354,22 +374,33 @@ def create_enc_dec_embedding(src_vocab_size,
     else:
         partitioner = tf.fixed_size_paritioner(num_partitions)
 
-    with tf.variable_scope("embeddings", dtype=dtype, partitioner=partitioner) as scope:
+    with tf.variable_scope("embeddings",
+                           dtype=dtype,
+                           partitioner=partitioner):
         with tf.variable_scope("encoder", partitioner=partitioner):
             embedding_encoder = tf.get_variable("embedding_encoder",
-                                                [src_vocab_size, src_embed_size], dtype)
+                                                [src_vocab_size,
+                                                 src_embed_size],
+                                                dtype)
         with tf.variable_scope("decoder", partitioner=partitioner):
             embedding_decoder = tf.get_variable("embedding_decoder",
-                                                [tgt_vocab_size, tgt_embed_size], dtype)
+                                                [tgt_vocab_size,
+                                                 tgt_embed_size],
+                                                dtype)
 
     return embedding_encoder, embedding_decoder
 
 
-def _single_cell(num_units, input_keep_prob, output_keep_prob, device_str=None):
+def _single_cell(num_units,
+                 input_keep_prob,
+                 output_keep_prob,
+                 device_str=None):
     single_cell = tf.contrib.rnn.GRUCell(num_units)
 
-    single_cell = tf.contrib.rnn.DropoutWrapper(cell=single_cell, input_keep_prob=input_keep_prob,
-                                                output_keep_prob=output_keep_prob)
+    single_cell = tf.contrib.rnn.DropoutWrapper(
+        cell=single_cell,
+        input_keep_prob=input_keep_prob,
+        output_keep_prob=output_keep_prob)
     if device_str:
         single_cell = tf.contrib.rnn.DeviceWrapper(single_cell, device_str)
 
@@ -379,7 +410,8 @@ def _single_cell(num_units, input_keep_prob, output_keep_prob, device_str=None):
 def create_rnn_cell(num_units, num_layers, input_keep_prob, output_keep_prob):
     cell_list = []
     for i in range(num_layers):
-        single_cell = _single_cell(num_units, input_keep_prob, output_keep_prob)
+        single_cell = _single_cell(
+            num_units, input_keep_prob, output_keep_prob)
         cell_list.append(single_cell)
 
     if len(cell_list) == 1:
@@ -389,9 +421,12 @@ def create_rnn_cell(num_units, num_layers, input_keep_prob, output_keep_prob):
 
 
 def gradient_clip(gradients, max_gradient_norm):
-    clipped_gradients, gradient_norm = tf.clip_by_global_norm(gradients, max_gradient_norm)
+    clipped_gradients, gradient_norm = tf.clip_by_global_norm(
+        gradients, max_gradient_norm)
     gradient_norm_summary = [tf.summary.scalar("grad_norm", gradient_norm),
-                             tf.summary.scalar("clipped_gradient", tf.global_norm(clipped_gradients))]
+                             tf.summary.scalar(
+                                 "clipped_gradient",
+                                 tf.global_norm(clipped_gradients))]
 
     return clipped_gradients, gradient_norm_summary, gradient_norm
 

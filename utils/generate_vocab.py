@@ -4,15 +4,17 @@ Generate vocabulary for a tokenized text file.
 
 import sys
 import argparse
-import re
 import collections
 import logging
-import nltk
 import os
 
 
 def main():
-    get_vocab(args.infile, args.max_vocab_size, args.delimiter, args.downcase, args.min_frequency)
+    get_vocab(args.infile,
+              args.max_vocab_size,
+              args.delimiter,
+              args.downcase,
+              args.min_frequency)
 
 
 if __name__ == "__main__":
@@ -46,13 +48,15 @@ if __name__ == "__main__":
         dest="delimiter",
         type=str,
         default=" ",
-        help="Delimiter character for tokenizing. Use \" \" and \"\" for word and char level respectively."
+        help="""Delimiter character for tokenizing. Use \" \" and \"\" for word
+            and char level respectively."""
     )
     args = parser.parse_args()
     main()
 
 
-def get_vocab(infile, max_vocab_size=None, delimiter=" ", downcase=False, min_frequency=0, to_file=True):
+def get_vocab(infile, max_vocab_size=None, delimiter=" ",
+              downcase=False, min_frequency=0, to_file=True):
     # Counter for all tokens in the vocabulary
     cnt = collections.Counter()
     with open(infile, 'r') as f:
@@ -88,7 +92,7 @@ def get_vocab(infile, max_vocab_size=None, delimiter=" ", downcase=False, min_fr
 
     path, filename = os.path.split(infile)
     filename, extension = os.path.splitext(filename)
-    
+
     if to_file:
         with open(os.path.join(path, "vocab" + extension), 'w') as outfile:
             print("<unk>", file=outfile)
@@ -96,6 +100,5 @@ def get_vocab(infile, max_vocab_size=None, delimiter=" ", downcase=False, min_fr
             print("</s>", file=outfile)
             for word, count in word_with_counts:
                 print("{}".format(word), file=outfile)
-                
-    return word_with_counts
 
+    return word_with_counts
