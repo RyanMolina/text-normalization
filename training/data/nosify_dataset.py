@@ -75,6 +75,9 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
         words, _ = zip(*gv.get_vocab(src, to_file=False))
         dataset.extend(words)
 
+    if shuffle:
+        articles = random.sample(articles, len(articles))
+
     print('  [+] converting to list of sentences')
     articles_sentences = process_pool.map(tokenizer, articles)
     print('  [+] flattening the list of sentences')
@@ -82,15 +85,16 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
                  for sentences in articles_sentences
                  for sentence in sentences]
     dataset.extend(sentences)
-    dataset_size = len(dataset)
-    print('  [+] Flattened data length: {}'.format(dataset_size))
+
+    if shuffle:
+        print('  [+] randomizing the position of the dataset')
+        dataset = random.sample(dataset, len(dataset))
 
     if size:
         dataset = dataset[:size]
 
-    if shuffle:
-        print('  [+] randomizing the position of the dataset')
-        dataset = random.sample(dataset, dataset_size)
+    dataset_size = len(dataset)
+    print('  [+] Flattened data length: {}'.format(dataset_size))
 
     sent_number = 0
     start_time = time.time()
