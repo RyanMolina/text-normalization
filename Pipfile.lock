@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7fe49c985edb9a5f0cb404dd5850b0db8adb8712b1642d215b0eebe8ee05542f"
+            "sha256": "1686c4f39a3afefd51fde02994cc8530d5eb0297e43354c4f1d7460598fefce5"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -18,7 +18,7 @@
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.5"
+            "python_version": "3.5.2"
         },
         "sources": [
             {
@@ -404,6 +404,16 @@
                 "sha256:bf51429bc11ab4561b5d124c08a5ee6476519d33b5970338586767563a02adc4",
                 "sha256:ee96a38a3ba3c53e1cdd8cc2af59d5f378b7992e63c54fba9605c963b209e814",
                 "sha256:233d66bfad2287c61434384ec315bbf37b2f551beda2e0d37a8c24a0f2ed3896"
+            ],
+            "version": "==1.4.1"
+        },
+        "tensorflow-gpu": {
+            "hashes": [
+                "sha256:3d6994be88e4358e4f7630a032b52ba2191ca9e810aa4902506394bb519bac84",
+                "sha256:f3a169cbf3bb2c54e9b2f7e3803479de49e2024a305fe729bc6553b76a361d31",
+                "sha256:26d437d858d55ef9ce712f1c4f8d22a353c2aba2d2bdd3ff354d2718fabafeb9",
+                "sha256:713770d7bd676faae9ded02198a41aaf7231633b74bd03ba0d929d52ac85e5e9",
+                "sha256:989232612b97c5fb3e50942a587bcbdcdcac029d47f4cf940f782f36923ceae5"
             ],
             "version": "==1.4.1"
         },
