@@ -169,7 +169,7 @@ class TextNoisifier:
             noisy_word = self.dispatch_rules(selected, word)
 
             if noisy_word == word:
-                selected = random.choice(['repeat_characters', 'misspell'])
+                selected = random.choice(['repeat_characters'])
                 word = self.dispatch_rules(selected, word)
             else:
                 word = noisy_word

@@ -34,8 +34,9 @@ def main():
                                            training_path, model_name,
                                            '{}_sentences.txt'.format(prefix)),
                                        tok=sent_tokenizer_path,
-                                       char_level_emb=True,
-                                       augment_data=True,
+                                       char_level_emb=False,
+                                       augment_data=False,
+                                       shuffle=False,
                                        max_token_count=280*2)
 
         split_dataset.split(
