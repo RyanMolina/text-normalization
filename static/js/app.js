@@ -3,13 +3,23 @@ $(document).ready(function($) {
     $('#normalize').hide()
     $('#results-table').insertAfter($('#accuracy'))
 
+    var delay = (function(){
+        var timer = 0;
+        return function(callback, ms){
+            clearTimeout (timer);
+            timer = setTimeout(callback, ms);
+        };
+    })();
+
     var maxLength = 280;
     $('#encoded').on("input", function() {
         var text = $(this).val()
         var length = text.length
         $('#chars').text(length+"/280");
         if (text != "") {
-            normalize(text)
+            delay(function() {
+                normalize(text)
+            }, 1000);
         } else {
             $('#decoded').text('')
         }
@@ -88,7 +98,9 @@ $(document).ready(function($) {
             type: 'POST',
             data: {'src': text},
             success: function(data) {
-                $("#decoded").html(data['tgt'])
+                if($('#encoded').val() !== "") {
+                    $("#decoded").html(data['tgt'])
+                }
             }
         });
     } 
