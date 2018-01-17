@@ -37,8 +37,7 @@ def main():
                                        char_level_emb=True,
                                        augment_data=True,
                                        shuffle=True,
-                                       size=1000000,
-                                       max_token_count=280*2)
+                                       max_token_count=140*2)
 
         split_dataset.split(
             os.path.join(

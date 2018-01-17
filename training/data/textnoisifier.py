@@ -131,11 +131,11 @@ class TextNoisifier:
     def group_repeating_units(self, word):
         hyphenated_words = self.re_hyphens.split(word)
         if len(hyphenated_words) > 1:
-            if hyphenated_words[0].find(hyphenated_words[2]) != -1:
+            if hyphenated_words[0].lower().find(hyphenated_words[2]) != -1:
                 end = len(hyphenated_words[0])
                 word = hyphenated_words[0][:end] \
                     + '2' + hyphenated_words[2][end:]
-            elif hyphenated_words[2].find(hyphenated_words[0]) != -1:
+            elif hyphenated_words[2].find(hyphenated_words[0].lower()) != -1:
                 end = len(hyphenated_words[0])
                 word = hyphenated_words[0][:end] \
                     + '2' + hyphenated_words[2][end:]
@@ -146,10 +146,10 @@ class TextNoisifier:
     @staticmethod
     def group_units(units):
         for i in range(len(units) - 1):
-            if units[i] != '' and units[i] == units[i + 1]:
+            if units[i] != '' and units[i].lower() == units[i + 1].lower():
                 units[i + 1] = str(2)
-            elif units[i] != '' and units[i] \
-                    == units[i + 1][:-(len(units[i]))]:
+            elif units[i] != '' and units[i].lower() \
+                    == units[i + 1][:-(len(units[i]))].lower():
                 units[i + 1] = str(2) + units[i + 1][(len(units[i])):]
         return ''.join(units)
 

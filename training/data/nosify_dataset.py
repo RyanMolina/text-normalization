@@ -3,8 +3,7 @@ import random
 import time
 from multiprocessing import Pool
 import re
-from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.data import load
+import nltk
 from utils import generate_vocab as gv
 from training.data.textnoisifier import TextNoisifier
 
@@ -49,6 +48,14 @@ def noisify(text):
     return ntg.noisify(text)
 
 
+def ngram_wrapper(text):
+    ngrams = [grams
+              for i in range(3, 6)
+              for grams in nltk.ngrams(text.split(), i)
+              ]
+    return ngrams
+
+
 def collect_dataset(src, tgt, tok=None, max_token_count=50,
                     char_level_emb=False, augment_data=False,
                     shuffle=False, size=None):
@@ -57,9 +64,9 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
 
     # Instance of PunktSentenceTokenizer from nltk.tokenize module
     if tok:
-        tokenizer = load(tok).tokenize
+        tokenizer = nltk.data.load(tok).tokenize
     else:
-        tokenizer = sent_tokenize
+        tokenizer = nltk.sent_tokenize
 
     print('# Reading file')
     with open(src, encoding='utf8') as infile:
@@ -96,6 +103,16 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
     dataset_size = len(dataset)
     print('  [+] Flattened data length: {}'.format(dataset_size))
 
+    ngrams = process_pool.map(ngram_wrapper, dataset)
+    dataset_ngrams = [' '.join(list(gram))
+                      for grams in ngrams
+                      for gram in grams if gram]
+
+    dataset.extend(dataset_ngrams)
+    print('  [+] Add ngrams data')
+    dataset_size = len(dataset)
+    print('  [+] New dataset size: {}'.format(dataset_size))
+
     sent_number = 0
     start_time = time.time()
 
@@ -121,14 +138,8 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
                 start_time = time.time()
 
             sent_len = len(list(sentence))
-            words = word_tokenize(sentence)
-            if 0 < sent_len < max_token_count \
-                    and is_ascii(sentence):
-                # Separate each token with space, even the punctuations
-                # Because word_tokenize changes the " to `` | ''
-                clean_sentence = ' '.join(words) \
-                                    .replace("''", '"') \
-                                    .replace("``", '"')
+            if 0 < sent_len and is_ascii(sentence):
+                clean_sentence = sentence[:max_token_count]
 
                 # Normalize first the contracted words from News Site Articles
                 clean_sentence = ntg.expansion(clean_sentence)
@@ -139,37 +150,34 @@ def collect_dataset(src, tgt, tok=None, max_token_count=50,
 
                 noisy_sentence = ntg.contraction(noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ntg.contractable_expr.sub(
-                        ntg.word_contraction, noisy_sentence)
+                noisy_sentence = ntg.contractable_expr.sub(
+                    ntg.word_contraction, noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ntg.anable_expr.sub(
-                        ntg.word_ang_to_an, noisy_sentence)
+                noisy_sentence = ntg.anable_expr.sub(
+                    ntg.word_ang_to_an, noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ntg.anu_expr.sub(
-                        ntg.word_ano, noisy_sentence)
+                noisy_sentence = ntg.anu_expr.sub(
+                    ntg.word_ano, noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ntg.amable_expr.sub(
-                        ntg.word_ang_to_am, noisy_sentence)
+                noisy_sentence = ntg.amable_expr.sub(
+                    ntg.word_ang_to_am, noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ntg.remove_space_expr.sub(
-                        ntg.word_remove_space, noisy_sentence)
+                noisy_sentence = ntg.remove_space_expr.sub(
+                    ntg.word_remove_space, noisy_sentence)
 
-                if random.getrandbits(1):
-                    noisy_sentence = ' '.join(process_pool.map(
-                        noisify, noisy_sentence.split()))
+                noisy_sentence = ' '.join(process_pool.map(
+                    noisify, noisy_sentence.split()))
 
-                if random.getrandbits(1):
-                    if random.getrandbits(1):
-                        noisy_sentence = noisy_sentence.lower()
-                    else:
-                        noisy_sentence = noisy_sentence.upper()
-                else:
-                    noisy_sentence = noisy_sentence.title()
+                # if random.getrandbits(1):
+                #     if random.getrandbits(1):
+                #         noisy_sentence = noisy_sentence.lower()
+                #     else:
+                #         noisy_sentence = noisy_sentence.upper()
+                # else:
+                #     noisy_sentence = noisy_sentence.title()
+
+                if random.getrandbits(1) and noisy_sentence[-1] in ".,!?:;":
+                    noisy_sentence = noisy_sentence[:-1]
 
                 if char_level_emb:
                     clean_sentence = ' '.join(list(clean_sentence)) \

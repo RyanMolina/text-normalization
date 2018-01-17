@@ -41,7 +41,6 @@ def main():
     clean_sentence = """Aalis ka ba pag ikaw ang bida ako ang bida.
     Di ko na kaya pang umasa sa wala , ang diyan oo na mahal na kung mahal kita
     , ganoon pala yun gusto ko ayaw ko at gusto ko bahala kayo"""
-
     clean_sentence = ntg.expansion(clean_sentence)
     clean_sentence = ntg.expandable_expr.sub(ntg.word_expansion,
                                              clean_sentence)
