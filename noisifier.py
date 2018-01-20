@@ -2,6 +2,22 @@ from training.data.textnoisifier import TextNoisifier
 from multiprocessing import Pool
 
 
+accent_dict = csv_to_dict('training/data/common_accented_words.txt')
+contract_dict = csv_to_dict('training/data/common_contracted_words.txt')
+phonetic_dict = csv_to_dict(
+    'training/data/common_phonetically_styled_words.txt')
+expansion_dict = {v: k for k, v in contract_dict.items()}
+
+with open('training/data/hyph_fil.tex', 'r') as f:
+    hyphenator_dict = f.read()
+
+ntg = TextNoisifier(accent_dict,
+                    phonetic_dict,
+                    contract_dict,
+                    expansion_dict,
+                    hyphenator_dict)
+
+
 def noisify(text):
     """
     function wrapper to be fed on Pool.map()
@@ -19,22 +35,6 @@ def csv_to_dict(file):
             k, v = row.split(',')
             d.update({k: v})
     return d
-
-
-accent_dict = csv_to_dict('training/data/common_accented_words.txt')
-contract_dict = csv_to_dict('training/data/common_contracted_words.txt')
-phonetic_dict = csv_to_dict(
-    'training/data/common_phonetically_styled_words.txt')
-expansion_dict = {v: k for k, v in contract_dict.items()}
-
-with open('training/data/hyph_fil.tex', 'r') as f:
-    hyphenator_dict = f.read()
-
-ntg = TextNoisifier(accent_dict,
-                    phonetic_dict,
-                    contract_dict,
-                    expansion_dict,
-                    hyphenator_dict)
 
 
 def main():

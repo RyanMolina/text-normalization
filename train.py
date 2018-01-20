@@ -14,7 +14,6 @@ def main():
     """Contains all of the work that needs to be done."""
     args = parse_args()
     model_name = args.model_name
-    prefix = "char_level"
 
     corpus_path = os.path.join('training', 'data', 'corpus')
     articles_path = os.path.join(corpus_path, args.src)
@@ -32,24 +31,24 @@ def main():
         nosify_dataset.collect_dataset(articles_path,
                                        os.path.join(
                                            training_path, model_name,
-                                           '{}_sentences.txt'.format(prefix)),
+                                           'dataset.dec'),
                                        tok=sent_tokenizer_path,
-                                       char_level_emb=True,
-                                       augment_data=True,
-                                       shuffle=True,
-                                       max_token_count=140*2)
+                                       char_level_emb=args.char_emb,
+                                       augment_data=args.augment_data,
+                                       shuffle=args.shuffle,
+                                       max_seq_len=args.max_seq_len)
 
         split_dataset.split(
             os.path.join(
                 training_path, model_name,
-                'noisy_{}_sentences.txt'.format(prefix)),
+                'dataset.enc'),
             os.path.join(training_path, model_name),
             'enc', test_size=500, dev_size=500)
 
         split_dataset.split(
             os.path.join(
                 training_path, model_name,
-                '{}_sentences.txt'.format(prefix)),
+                'dataset.dec'),
             os.path.join(training_path, model_name),
             'dec', test_size=500, dev_size=500)
 
@@ -62,7 +61,7 @@ def main():
         data_dir = os.path.join(training_path, model_name)
         model_dir = os.path.join('training', 'model', model_name)
         os.makedirs(model_dir, exist_ok=True)
-        hparams_file = os.path.join('{}_hparams.json'.format(prefix))
+        hparams_file = os.path.join('hparams.json')
 
         if not os.path.exists(os.path.join(model_dir, hparams_file)):
             shutil.copy(hparams_file, os.path.join(model_dir))
@@ -92,10 +91,27 @@ def parse_args():
     parser.add_argument('--train', default=False, type=bool,
                         help="Start/Resume train")
 
+    parser.add_argument('--char_emb', default=False, type=bool,
+                        help="""Embedding type
+                        True for char-level, False for word-level""")
+
+    parser.add_argument('--augment_data', nargs='?', const=False, type=bool,
+                        help="""Augment data by adding the dataset vocabulary
+                        and the n-gram from unigram to 6-gram""")
+
+    parser.add_argument('--shuffle', default=False, type=bool,
+                        help="""Shuffle the dataset""")
+
+    parser.add_argument('--max_seq_len', default=140, type=int,
+                        help="""Maximum seq length
+                        to be used in dataset generation""")
+
     parser.add_argument('--train_sent_tokenizer', default=False, type=bool,
                         help="Train a new sentence tokenizer")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    print(args.char_emb)
+    return args
 
 
 if __name__ == "__main__":

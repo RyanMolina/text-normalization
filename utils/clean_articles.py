@@ -1,36 +1,20 @@
 import re
 import argparse
 
-html_tags_pattern = re.compile(r'<[^>]*>')
 spaces = re.compile(r'\s+')
-
-
-def remove_html_tags(text):
-    return html_tags_pattern.sub(text, '')
-
-
-def remove_multiple_space(text):
-    return spaces.sub(' ', text)
-
-
-def remove_multiple_newlines(text):
-    return text.replace('\r', '').replace('\n', '')
-
-
-def replace_quotation(text):
-    return text.replace('“', '"').replace('”', '"')
+ascii_only = re.compile(r'[^\x00-\x7f]')
 
 
 def main():
     with open(args.src, 'r') as in_file, \
          open(args.out, 'w') as out_file:
-        articles = in_file.read().split('\n')
+        articles = in_file.read()
+        articles = ascii_only.sub('', articles).splitlines()
         for article in articles:
-            article = remove_multiple_space(article)
-            article = remove_multiple_newlines(article)
-            article = replace_quotation(article)
+            article = spaces.sub(' ', article)
+            article = article.replace('\r', '').replace('\n', '')
             if article:
-                print(article.strip('-').strip(), file=out_file)
+                print(article.strip(), file=out_file)
 
 
 if __name__ == "__main__":

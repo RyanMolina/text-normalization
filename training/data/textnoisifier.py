@@ -17,9 +17,7 @@ class TextNoisifier:
         self.re_accepted = re.compile(r"^[\sA-Za-z'-]+")
         self.re_hyphens = re.compile(r'(-)')
         self.misspell_replacement = list(string.ascii_lowercase) + ['']
-        self.vowels = "aeiou"
-        self.remove_vowel_rule = str.maketrans(dict.fromkeys(self.vowels,
-                                                             None))
+        self.vowels = "aeiouAEIOU"
 
         matches = re.findall(r"\{(.*?)\}",
                              hyphenator_dict,
@@ -50,32 +48,37 @@ class TextNoisifier:
                                             re.IGNORECASE)
 
     def remove_vowels(self, word):
+        vowel_sample = random.sample(self.vowels,
+                                     random.randrange(len(self.vowels)))
+        remove_vowel_rule = str.maketrans(dict.fromkeys(vowel_sample,
+                                                        None))
         if len(word) == 4 and word[0] in self.vowels:
             if random.getrandbits(1):
                 return word[1:]
 
         if not self.re_adj_vowels.search(word) and len(word) > 3:
-            pos = random.choice(["all", "left", "middle", "right"])
             w_len = len(word)
             center = w_len // 2
-            if pos == "left":
+            if random.getrandbits(1):
+                if random.getrandbits(1):  # left
+                    word = word[0] \
+                        + word[1:center].translate(remove_vowel_rule) \
+                        + word[center:]
+                if random.getrandbits(1):  # middle
+                    start = center // 2
+                    end = center + start
+                    word = word[:start] \
+                        + word[start:end].translate(remove_vowel_rule) \
+                        + word[end:]
+                if random.getrandbits(1):  # right
+                    word = word[:center] \
+                        + word[center:w_len-1].translate(remove_vowel_rule) \
+                        + word[-1]
+            else:  # all
                 word = word[0] \
-                    + word[1:center].translate(self.remove_vowel_rule) \
-                    + word[center:]
-            elif pos == "middle":
-                start = center // 2
-                end = center + start
-                word = word[:start] \
-                    + word[start:end].translate(self.remove_vowel_rule) \
-                    + word[end:]
-            elif pos == "right":
-                word = word[:center] \
-                    + word[center:w_len-1].translate(self.remove_vowel_rule) \
+                    + word[1:-1].translate(remove_vowel_rule) \
                     + word[-1]
-            else:
-                word = word[0] \
-                    + word[1:-1].translate(self.remove_vowel_rule) \
-                    + word[-1]
+
         elif len(word) == 2 and word[-1] in self.vowels:
             word = word[0]
         return word
@@ -157,6 +160,7 @@ class TextNoisifier:
         if not self.re_digits.search(word) \
                 and self.re_accepted.search(word) \
                 and len(word) > 1 \
+                and word[0].islower() \
                 and "'" not in word:
 
             grouped_units = self.group_repeating_units(word)
@@ -209,18 +213,3 @@ class TextNoisifier:
     @staticmethod
     def word_remove_space(match):
         return match.group(0).replace(' ', '')
-
-
-"""
-Possible Recommendation
-  replace named-entity with <name>
-  numbers and dates, and time replace with <number> <date> and <time>
-
-
-Find a better sentence splitter
-Graph all models and see their perplexity
-and accuracy
-graph test and train accuracy per model
-accuracy per sent length
-change the max len to 280*2
-"""

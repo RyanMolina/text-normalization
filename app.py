@@ -158,12 +158,19 @@ def parse_args():
                         Specify the checkpoint filename.
                         (Default: latest checkpoint)
                         """)
+    parser.add_argument('--char_emb', default=False, type=bool,
+                        help="""
+                        Char-level or word-level embedding
+                        """
+                        )
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     ARGS = parse_args()
     with tf.Session() as sess:
-        NORMALIZER = serve.Serve(sess=sess, model_name=ARGS.model_name,
-                                 checkpoint=ARGS.checkpoint)
+        NORMALIZER = serve.Serve(sess=sess,
+                                 model_name=ARGS.model_name,
+                                 checkpoint=ARGS.checkpoint,
+                                 char_emb=ARGS.char_emb)
         APP.run(debug=True, use_reloader=True)

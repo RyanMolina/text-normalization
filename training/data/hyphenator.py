@@ -1,3 +1,4 @@
+"""Frank Liang Hyphenation Algorithm"""
 import re
 
 
@@ -10,13 +11,14 @@ class Hyphenator:
         self.exceptions = {}
         for ex in exceptions.split():
             # Convert the hyphenated pattern into a point array for use later.
-            self.exceptions[ex.replace('-', '')] = [0] + [ int(h == '-') for h in re.split(r"[a-z]", ex) ]
+            self.exceptions[ex.replace('-', '')] = \
+                [0] + [int(h == '-') for h in re.split(r"[a-z]", ex)]
 
     def _insert_pattern(self, pattern):
         # Convert the a pattern like 'a1bc3d4' into a string of chars 'abcd'
         # and a list of points [ 0, 1, 0, 3, 4 ].
         chars = re.sub('[0-9]', '', pattern)
-        points = [ int(d or 0) for d in re.split("[.a-z]", pattern) ]
+        points = [int(d or 0) for d in re.split("[.a-z]", pattern)]
 
         # Insert the pattern into the tree.  Each character finds a dict
         # another level down in the tree, and leaf nodes have the list of
