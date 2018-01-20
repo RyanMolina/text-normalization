@@ -2,7 +2,6 @@ import os
 import random
 import time
 from multiprocessing import Pool
-import re
 import nltk
 from training.data.textnoisifier import TextNoisifier
 
@@ -42,6 +41,10 @@ def ngram_wrapper(text):
     return ngrams
 
 
+def space_seperated(text):
+    return ' '.join(nltk.word_tokenize(text))
+
+
 def collect_dataset(src, tgt, tok=None, max_seq_len=50,
                     char_level_emb=False, augment_data=False,
                     shuffle=False, size=None):
@@ -58,7 +61,8 @@ def collect_dataset(src, tgt, tok=None, max_seq_len=50,
     with open(src, encoding='utf8') as infile:
         contents = infile.read()
         articles = [content.strip()
-                    for content in contents.split('\n') if content != '\n']
+                    for content in contents.split('\n')
+                    if content != '\n']
 
     dataset = []
 
@@ -72,7 +76,6 @@ def collect_dataset(src, tgt, tok=None, max_seq_len=50,
                  for sentences in articles_sentences
                  for sentence in sentences]
     dataset.extend(sentences)
-
     dataset_size = len(dataset)
     print('  [+] Flattened data length: {}'.format(dataset_size))
 
@@ -80,13 +83,17 @@ def collect_dataset(src, tgt, tok=None, max_seq_len=50,
         ngrams = process_pool.map(ngram_wrapper, dataset)
         dataset_ngrams = [' '.join(list(gram))
                           for grams in ngrams
-                          for gram in grams if gram]
+                          for gram in grams
+                          if gram]
 
         dataset_ngrams = random.sample(dataset_ngrams, len(dataset_ngrams))
         dataset.extend(dataset_ngrams[:500000])
         print('  [+] Add ngrams to dataset')
         dataset_size = len(dataset)
         print('  [+] New dataset size: {}'.format(dataset_size))
+
+    if not char_level_emb:
+        dataset = process_pool.map(space_seperated, dataset)
 
     if shuffle:
         print('  [+] randomizing the position of the dataset')
@@ -99,17 +106,18 @@ def collect_dataset(src, tgt, tok=None, max_seq_len=50,
     start_time = time.time()
 
     print('   => collecting clean and noisy sentences')
-    path, filename = os.path.split(tgt)
+
+    filename, _ = os.path.splitext(tgt)
+    noisified_file = "{}.{}".format(filename, 'enc')
     with open(tgt, 'w', encoding="utf8") as decoder_file, \
-            open("{}/noisy_{}".format(path, filename),
-                 'w', encoding='utf8') as encoder_file:
+            open(noisified_file, 'w', encoding='utf8') as encoder_file:
 
         for sentence in dataset:
             sent_number += 1
 
             if sent_number % 10000 == 0:
+                
                 speed = 10000 / (time.time() - start_time)
-
                 print("      # {} "
                       "line/s: {:.2f} "
                       "ETA: {}".format(
